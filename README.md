@@ -63,7 +63,7 @@ The agent has eight tools. Each runs on the server, so Atomic credentials never 
 
 | Tool | What it does | Atomic API |
 | --- | --- | --- |
-| `ensure_user` | Makes sure Atomic knows the user, by creating them if needed. Called at the start of each conversation. | `POST /access-token` |
+| `upsert_user` | Makes sure Atomic knows the user, by creating them if needed. Called at the start of each conversation. | `POST /access-token` |
 | `find_merchant` | Searches for a merchant by name and says whether Atomic can cancel subscriptions there. | `POST /company/search` |
 | `list_cancellable_merchants` | Lists every merchant where Atomic supports cancelling a plan. | `GET /company/list?actions=cancel-plan` |
 | `get_user_subscriptions` | Shows the merchants the user has connected and the subscriptions and plans Atomic found there. | `GET /pay-link/accounts` |

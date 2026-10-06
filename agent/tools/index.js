@@ -1,7 +1,7 @@
 // LangChain tools for the subscription agent. Each tool lives in its own file
 // with its name, description, schemas and handler.
 import { tool } from "langchain";
-import { ensureUser } from "./ensure-user.js";
+import { upsertUser } from "./upsert-user.js";
 import { findMerchant } from "./find-merchant.js";
 import { listCancellableMerchants } from "./list-cancellable-merchants.js";
 import { getUserSubscriptions } from "./get-user-subscriptions.js";
@@ -11,7 +11,7 @@ import { startConnectAccount } from "./start-connect-account.js";
 import { checkEvents } from "./check-events.js";
 
 export const TOOLS = [
-  ensureUser,
+  upsertUser,
   findMerchant,
   listCancellableMerchants,
   getUserSubscriptions,

@@ -1,7 +1,7 @@
 import { atomic } from '../../atomic/index.js'
 
-export const ensureUser = {
-  name: 'ensure_user',
+export const upsertUser = {
+  name: 'upsert_user',
 
   description: `Make sure Atomic knows this user, registering them if it doesn't. Call this once at the start of every conversation, before any other tool.
 - It takes no input. The user is identified by the server, never by you.
