@@ -1,5 +1,5 @@
 {
-  "name": "manage-agent-example",
+  "name": "subscriptions-agent-example",
   "private": true,
   "type": "module",
   "scripts": {
