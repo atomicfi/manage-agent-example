@@ -6,8 +6,7 @@ import { findCompany } from "./find-company.js";
 import { listCancellableCompanies } from "./list-cancellable-companies.js";
 import { getUserSubscriptions } from "./get-user-subscriptions.js";
 import { getActionsForCompany } from "./get-actions-for-company.js";
-import { startCancellation } from "./start-cancellation.js";
-import { startConnectAccount } from "./start-connect-account.js";
+import { getActionConfig } from "./get-action-config.js";
 import { checkEvents } from "./check-events.js";
 
 export const TOOLS = [
@@ -16,8 +15,7 @@ export const TOOLS = [
   listCancellableCompanies,
   getUserSubscriptions,
   getActionsForCompany,
-  startCancellation,
-  startConnectAccount,
+  getActionConfig,
   checkEvents,
 ];
 

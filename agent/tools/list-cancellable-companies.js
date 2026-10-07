@@ -3,10 +3,14 @@ import { atomic } from "../../atomic/index.js";
 export const listCancellableCompanies = {
   name: "list_cancellable_companies",
 
-  description: `List the companies where Atomic supports cancellation. Use this when the user asks what you can cancel. For a merchant the user named, use find_company.
+  description: `
+List the companies where Atomic supports cancellation. Use this when the user asks what you can
+cancel. For a merchant the user named, use find_company.
 - Returns Atomic's company list response; the companies are in data.
-- A company on this list supports cancellation in general. Call get_actions_for_company to see whether this user can cancel there right now.
-- status 'under-maintenance': cancellation there is temporarily unavailable. 'disabled': it can't be used.`,
+- A company on this list supports cancellation in general. Call get_actions_for_company to see
+  whether this user can cancel there right now.
+- status 'under-maintenance': cancellation there is temporarily unavailable. 'disabled': it can't be
+  used.`,
 
   schema: {
     type: "object",

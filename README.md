@@ -26,7 +26,7 @@ Everything the agent responds to goes through one queue. Three things write to i
 
 - **The user's messages** go to `POST /user-message`, and the server queues them.
 - **Transact SDK events**: when the user leaves the Atomic screen, the app sends the SDK's `onFinish` or `onClose` payload to `POST /transact-events`. The server queues it as a system event, so the agent can check on the task and follow up.
-- **Atomic webhooks** arrive at `POST /webhooks/atomic`. `task-status-updated` and `pay-link-accounts-updated` events are saved to SQLite. When one changes something the user cares about, such as a cancellation finishing, the server also queues it.
+- **Atomic webhooks** arrive at `POST /webhooks/atomic`. `task-status-updated` events are saved to SQLite, and when a task finishes, the server also queues it. A cancellation is followed by a refresh task that resyncs the user's data; once the refresh completes, the agent reads the account to confirm the cancellation.
 - **The agent** sees system events as `<system_event type="…">` messages the user never sees. Its system prompt says how to respond to each type.
 - **Replies** go to the app over the WebSocket, along with `busy` (for the typing indicator) and `error` events. Each user has one thread, keyed by their user ID.
 
@@ -49,7 +49,7 @@ mobile/         Expo app: chat screen, API client, Transact launcher
 
 ## Tools
 
-The agent has eight tools. Each runs on the server, so Atomic credentials never reach the model or the app.
+The agent has seven tools. Each runs on the server, so Atomic credentials never reach the model or the app.
 
 | Tool | What it does | Atomic API |
 | --- | --- | --- |
@@ -58,8 +58,7 @@ The agent has eight tools. Each runs on the server, so Atomic credentials never 
 | `list_cancellable_companies` | Lists every company where Atomic supports cancelling a plan. | `GET /company/list?actions=cancel-plan` |
 | `get_user_subscriptions` | Shows the user's connected accounts, with the bills and plans Atomic found on each. | `GET /pay-link/accounts` |
 | `get_actions_for_company` | Gets what Atomic can do for this user at a merchant: `cancel-plan` for a specific subscription, or `connect-account` if the user needs to sign in first. | `GET /pay-link/actions-for-company/:companyId` |
-| `start_cancellation` | Creates a public token and gives the app a "Cancel \<merchant\>" button that opens Transact on that cancel action. Returns the settings the app needs to launch Transact on the right action. | `POST /access-token` |
-| `start_connect_account` | Same, with a "Connect \<merchant\>" button so the user can sign in to the merchant. Returns the settings the app needs to launch Transact on the right action. | `POST /access-token` |
+| `get_action_config` | Creates a public token and gives the app a "Cancel \<company\>" or "Connect \<company\>" button that opens Transact on a `cancel-plan` or `connect-account` action. Returns the settings the app needs to launch Transact on the right action. | `POST /access-token` |
 | `check_events` | Reads the latest task statuses from the stored webhooks, to tell the user whether a cancellation went through. | None. It reads the local database. |
 
 ## Running it locally
