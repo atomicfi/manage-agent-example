@@ -19,20 +19,10 @@ It's meant to be read, not deployed. There's no login, state lives in memory or 
 
 Everything the agent responds to goes through one queue. Three things write to it: the user, Atomic's webhooks, and the Transact SDK's events. The agent takes items off the queue one at a time for each user and sends each reply to the app over a WebSocket.
 
-```
- Mobile app                          Server                                   Atomic
-┌──────────────┐  POST /user-message   ┌──────────────────────┐
-│ Chat screen  │──────────────────────▶│                      │
-│              │  POST /transact-events│   Message queue      │◀── POST /webhooks/atomic ── Atomic webhooks
-│ Transact SDK │──────────────────────▶│   (one per thread)   │
-│  onFinish /  │                       └──────────┬───────────┘
-│  onClose     │                                  │ one turn at a time
-│              │                                  ▼
-│              │   WebSocket /ws       ┌──────────────────────┐   API calls
-│              │◀──────────────────────│  Agent (Claude +     │─────────────────────▶ Atomic API
-└──────────────┘  reply, busy, error   │  tools)              │
-                                       └──────────────────────┘
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/architecture-dark.png">
+  <img alt="Architecture: the frontend sends user messages and Transact SDK events to a message queue on the backend, Atomic sends webhook events to the same queue, the agent takes one message at a time, calls the Atomic API through its tools, and sends replies back to the frontend, which launches Transact." src="docs/architecture.png">
+</picture>
 
 - **The user's messages** go to `POST /user-message`, and the server queues them.
 - **Transact SDK events**: when the user leaves the Atomic screen, the app sends the SDK's `onFinish` or `onClose` payload to `POST /transact-events`. The server queues it as a system event, so the agent can check on the task and follow up.
