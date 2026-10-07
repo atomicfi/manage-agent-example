@@ -17,24 +17,13 @@ export const startCancellation = {
         type: "string",
         description: "The actionId of the action to run, from get_actions_for_company."
       },
-      merchant: {
+      companyName: {
         type: "string",
-        description: "The merchant's name, shown on the button, for example 'Netflix'."
+        description: "The company's name, shown on the button, for example 'Netflix'."
       }
     },
-    required: ["actionId", "merchant"],
+    required: ["actionId", "companyName"],
     additionalProperties: false
-  },
-
-  outputSchema: {
-    type: "object",
-    properties: {
-      state: {
-        enum: ["ready"],
-        description: "ready: the app is showing the user a button that opens Transact for this action."
-      }
-    },
-    required: ["state"]
   },
 
   // Besides its output for the model, this tool returns a clientAction: the
@@ -43,16 +32,15 @@ export const startCancellation = {
   returnsClientAction: true,
 
   // ctx ({ userIdentifier, conversationId }) comes from the server, never the model.
-  async handler({ actionId, merchant }, ctx, { newId, sdkEnvironment }) {
+  async handler({ actionId, companyName }, ctx, { newId, sdkEnvironment }) {
     const { data } = await atomic.createAccessToken(ctx.userIdentifier)
     return {
       output: { state: 'ready' },
       clientAction: {
         type: 'launch_transact',
         id: newId(),
-        label: `Cancel ${merchant}`,
-        finishedLabel: `${merchant} cancellation submitted`,
-        merchant,
+        label: `Cancel ${companyName}`,
+        finishedLabel: `${companyName} cancellation submitted`,
         config: {
           scope: 'pay-link',
           publicToken: data.publicToken,

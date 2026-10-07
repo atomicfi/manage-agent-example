@@ -40,7 +40,7 @@ Everything the agent responds to goes through one queue. Three things write to i
 - **The agent** sees system events as `<system_event type="…">` messages the user never sees. Its system prompt says how to respond to each type.
 - **Replies** go to the app over the WebSocket, along with `busy` (for the typing indicator) and `error` events. Each user has one thread, keyed by their user ID.
 
-When the agent wants the app to open Transact, a tool returns a `launch_transact` *client action* alongside its result. It travels with the agent's reply, and the app shows it as a button. The model never sees the public token or the action IDs.
+When the agent wants the app to open Transact, a tool returns a `launch_transact` *client action* alongside its result. It travels with the agent's reply, and the app shows it as a button. The model only learns that the button is ready; it never sees the launch configuration.
 
 ### Where things live
 
@@ -64,9 +64,9 @@ The agent has eight tools. Each runs on the server, so Atomic credentials never 
 | Tool | What it does | Atomic API |
 | --- | --- | --- |
 | `upsert_user` | Makes sure Atomic knows the user, by creating them if needed. Called at the start of each conversation. | `POST /access-token` |
-| `find_merchant` | Searches for a merchant by name and says whether Atomic can cancel subscriptions there. | `POST /company/search` |
-| `list_cancellable_merchants` | Lists every merchant where Atomic supports cancelling a plan. | `GET /company/list?actions=cancel-plan` |
-| `get_user_subscriptions` | Shows the merchants the user has connected and the subscriptions and plans Atomic found there. | `GET /pay-link/accounts` |
+| `find_company` | Searches for a company by name and says whether Atomic can cancel subscriptions there. | `POST /company/search` |
+| `list_cancellable_companies` | Lists every company where Atomic supports cancelling a plan. | `GET /company/list?actions=cancel-plan` |
+| `get_user_subscriptions` | Shows the user's connected accounts, with the bills and plans Atomic found on each. | `GET /pay-link/accounts` |
 | `get_actions_for_company` | Gets what Atomic can do for this user at a merchant: `cancel-plan` for a specific subscription, or `connect-account` if the user needs to sign in first. | `GET /pay-link/actions-for-company/:companyId` |
 | `start_cancellation` | Creates a public token and gives the app a "Cancel \<merchant\>" button that opens Transact on that cancel action. Returns the settings the app needs to launch Transact on the right action. | `POST /access-token` |
 | `start_connect_account` | Same, with a "Connect \<merchant\>" button so the user can sign in to the merchant. Returns the settings the app needs to launch Transact on the right action. | `POST /access-token` |

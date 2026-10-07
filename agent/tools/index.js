@@ -2,8 +2,8 @@
 // with its name, description, schemas and handler.
 import { tool } from "langchain";
 import { upsertUser } from "./upsert-user.js";
-import { findMerchant } from "./find-merchant.js";
-import { listCancellableMerchants } from "./list-cancellable-merchants.js";
+import { findCompany } from "./find-company.js";
+import { listCancellableCompanies } from "./list-cancellable-companies.js";
 import { getUserSubscriptions } from "./get-user-subscriptions.js";
 import { getActionsForCompany } from "./get-actions-for-company.js";
 import { startCancellation } from "./start-cancellation.js";
@@ -12,8 +12,8 @@ import { checkEvents } from "./check-events.js";
 
 export const TOOLS = [
   upsertUser,
-  findMerchant,
-  listCancellableMerchants,
+  findCompany,
+  listCancellableCompanies,
   getUserSubscriptions,
   getActionsForCompany,
   startCancellation,

@@ -39,6 +39,8 @@ function handleTaskStatusUpdated(event) {
     `[webhook] task=${taskId} user=${userIdentifier} action=${action} company=${companyName} status=${status} changed=${changed}`,
   );
 
+  // Only these fields go to the agent: the raw webhook also carries the user's
+  // public token, which the model shouldn't see.
   const finished = status === "completed" || status === "failed";
   if (changed && finished) {
     enqueueSystemEvent(userIdentifier, "task-status-updated", {
@@ -50,8 +52,7 @@ function handleTaskStatusUpdated(event) {
 }
 
 // Tells the agent when the user's PayLink accounts change, such as subscriptions
-// finishing loading after they connect a merchant. Retries, and deliveries where
-// Atomic is only still working on the accounts, don't start a turn.
+// finishing loading after they connect a merchant.
 function handlePayLinkAccountsUpdated(event) {
   const userIdentifier = event.user?.identifier;
   const eventTime = event.eventTime ?? new Date().toISOString();
@@ -62,14 +63,7 @@ function handlePayLinkAccountsUpdated(event) {
     `[webhook] pay-link-accounts-updated user=${userIdentifier} updates=${accounts.map((a) => a.updateType).join(",")}`,
   );
 
-  // Atomic's account and bill IDs mean nothing to the agent; it looks the
-  // accounts up with get_user_subscriptions.
-  enqueueSystemEvent(userIdentifier, "pay-link-accounts-updated", {
-    accounts: accounts.map((a) => ({
-      updateType: a.updateType,
-      changedFields: [
-        ...new Set((a.bills ?? []).flatMap((b) => b.changedFields ?? [])),
-      ],
-    })),
-  });
+  // The webhook's data as Atomic sent it. It doesn't name the company; the agent
+  // looks the accounts up with get_user_subscriptions.
+  enqueueSystemEvent(userIdentifier, "pay-link-accounts-updated", event.data);
 }

@@ -18,24 +18,13 @@ export const startConnectAccount = {
         type: "string",
         description: "The actionId of the 'connect-account' action, from get_actions_for_company."
       },
-      merchant: {
+      companyName: {
         type: "string",
-        description: "The merchant's name, shown on the button, for example 'Apple'."
+        description: "The company's name, shown on the button, for example 'Apple'."
       }
     },
-    required: ["actionId", "merchant"],
+    required: ["actionId", "companyName"],
     additionalProperties: false
-  },
-
-  outputSchema: {
-    type: "object",
-    properties: {
-      state: {
-        enum: ["ready"],
-        description: "ready: the app is showing the user a button that opens Transact to sign in to the merchant."
-      }
-    },
-    required: ["state"]
   },
 
   // Besides its output for the model, this tool returns a clientAction: the
@@ -44,16 +33,15 @@ export const startConnectAccount = {
   returnsClientAction: true,
 
   // ctx ({ userIdentifier, conversationId }) comes from the server, never the model.
-  async handler({ actionId, merchant }, ctx, { newId, sdkEnvironment }) {
+  async handler({ actionId, companyName }, ctx, { newId, sdkEnvironment }) {
     const { data } = await atomic.createAccessToken(ctx.userIdentifier)
     return {
       output: { state: 'ready' },
       clientAction: {
         type: 'launch_transact',
         id: newId(),
-        label: `Connect ${merchant}`,
-        finishedLabel: `${merchant} connected`,
-        merchant,
+        label: `Connect ${companyName}`,
+        finishedLabel: `${companyName} connected`,
         config: {
           scope: 'pay-link',
           publicToken: data.publicToken,

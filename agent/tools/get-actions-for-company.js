@@ -18,7 +18,7 @@ export const getActionsForCompany = {
     properties: {
       companyId: {
         type: "string",
-        description: "The companyId from find_merchant."
+        description: "The company's _id, from find_company."
       }
     },
     required: ["companyId"],
@@ -27,51 +27,6 @@ export const getActionsForCompany = {
 
   // The cancel-plan and connect-account actions from Atomic's
   // GET /pay-link/actions-for-company/:companyId.
-  outputSchema: {
-    type: "object",
-    properties: {
-      actions: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            actionId: {
-              type: "string",
-              description: "Atomic's id for this action. Pass a cancel-plan action to start_cancellation, and a connect-account action to start_connect_account."
-            },
-            type: {
-              enum: ["cancel-plan", "connect-account"],
-              description: "cancel-plan starts a cancellation with start_cancellation. connect-account signs the user in to the merchant with start_connect_account, so Atomic can read their subscriptions."
-            },
-            automated: {
-              type: "boolean",
-              description: "True when Atomic performs the action. False when Atomic opens the merchant's own page for the user to finish it there."
-            },
-            disabled: {
-              type: "boolean",
-              description: "True when the merchant is temporarily disabled for maintenance. Do not offer this action."
-            },
-            bill: {
-              type: "object",
-              description: "The subscription this action is for. Missing before the user connects the merchant.",
-              properties: {
-                _id: { type: "string" },
-                name: { type: "string" },
-                companyId: { type: "string" }
-              }
-            },
-            testFlow: {
-              enum: ["paylink-action-failed", "auth-expired", "system-unavailable", "unexpected-response", "reconnect"],
-              description: "Set only for test accounts."
-            }
-          },
-          required: ["actionId", "type", "automated", "disabled"]
-        }
-      }
-    },
-    required: ["actions"]
-  },
-
   // ctx ({ userIdentifier, conversationId }) comes from the server, never the model.
   async handler({ companyId }, ctx) {
     const { actions } = await atomic.getActionsForCompany(companyId, ctx.userIdentifier)

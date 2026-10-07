@@ -14,17 +14,6 @@ export const upsertUser = {
     additionalProperties: false
   },
 
-  outputSchema: {
-    type: "object",
-    properties: {
-      state: {
-        enum: ["ready"],
-        description: "ready: Atomic knows the user, and the other tools can be used."
-      }
-    },
-    required: ["state"]
-  },
-
   // ctx ({ userIdentifier, conversationId }) comes from the server, never the model.
   async handler(input, ctx) {
     // Creating an access token registers the user with Atomic, or finds the
