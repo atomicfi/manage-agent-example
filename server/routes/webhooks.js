@@ -17,6 +17,7 @@ webhookRouter.post("/atomic", (req, res) => {
 // Tells the agent when a task finishes. A cancellation is followed by a
 // refresh task that resyncs the user's data; once the refresh completes, the
 // new data is ready to read.
+// https://docs.atomicfi.com/paylink/reference/webhooks#tasks__task-status-updated
 function handleTaskStatusUpdated(event) {
   const taskId = event.task;
   const userIdentifier = event.user?.identifier;

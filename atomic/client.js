@@ -44,11 +44,13 @@ export function createAtomicClient({
     request,
 
     // POST /company/search
+    // https://docs.atomicfi.com/paylink/reference/api#company__company-search
     searchCompanies(query) {
       return request('POST', '/company/search', { body: { query, scopes: ['pay-link'] } })
     },
 
     // GET /company/list
+    // https://docs.atomicfi.com/paylink/reference/api#company__company-list
     listCompanies({ actions, limit = 100, skip = 0 } = {}) {
       const qs = new URLSearchParams({ scope: 'pay-link', limit, skip })
       if (actions) qs.set('actions', actions)
@@ -56,6 +58,7 @@ export function createAtomicClient({
     },
 
     // GET /pay-link/actions-for-company/:companyId
+    // https://docs.atomicfi.com/paylink/reference/api#actions-for-company__get-actions-for-company
     getActionsForCompany(companyId, identifier) {
       return request('GET', `/pay-link/actions-for-company/${encodeURIComponent(companyId)}`, {
         identifier
@@ -63,12 +66,14 @@ export function createAtomicClient({
     },
 
     // GET /pay-link/accounts[?companyId=]
+    // https://docs.atomicfi.com/paylink/reference/api#accounts__get-accounts
     getAccounts(identifier, { companyId } = {}) {
       const qs = companyId ? `?companyId=${encodeURIComponent(companyId)}` : ''
       return request('GET', `/pay-link/accounts${qs}`, { identifier })
     },
 
     // POST /access-token. Also registers the user with Atomic.
+    // https://docs.atomicfi.com/paylink/reference/api#access-token__create-access-token
     createAccessToken(identifier) {
       return request('POST', '/access-token', { body: { identifier } })
     }
