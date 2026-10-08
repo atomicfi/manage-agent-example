@@ -67,11 +67,12 @@ The project uses **Atomic's sandbox by default**. `.env.example` points at `http
 
 ### What you need
 
-- **Node.js 22.13 or later**
-- **macOS with Xcode** and an iOS simulator, plus CocoaPods, to build the app
-- **An Atomic account**, to get sandbox API keys from the Atomic console. If you don't have one, contact Atomic to get set up.
+- **Node.js 22.13 or later**, with npm
+- **macOS with Xcode** and an iOS simulator running iOS 16.4 or later, plus CocoaPods, to build the app. It has been built with Xcode 27.0 and CocoaPods 1.16.2. The app is iOS only: there's an `android` script, but it hasn't been built or tested for Android. It needs a native build because the Transact SDK has native code, so Expo Go won't run it.
+- **Ports 3000 and 8081 free**, for the server and Metro. If another dev server is on port 3000, the app's requests reach it instead and fail with a 404. To use a different port, start the server with `PORT=3001 npm run dev` and set `EXPO_PUBLIC_API_URL` in `mobile/.env` to match, then restart Metro with `npx expo start -c` so the app picks it up.
+- **An Atomic account**, to get sandbox API keys from the Atomic console. If you don't have one, contact Atomic to get set up. Besides the PayLink endpoints, the keys need access to list API secrets and to create and delete webhook endpoints, for the automatic webhook setup.
 - **An Anthropic account**, to get an API key from the [Claude Console](https://console.anthropic.com/settings/keys)
-- **An [ngrok](https://ngrok.com) account**, for the authtoken the server uses to open a tunnel so Atomic's webhooks can reach your machine
+- **An [ngrok](https://ngrok.com) account**, for the authtoken the server uses to open a tunnel so Atomic's webhooks can reach your machine. A free account works, and you don't need the ngrok CLI.
 
 ### 1. Install
 
