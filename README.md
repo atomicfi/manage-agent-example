@@ -71,7 +71,7 @@ The project uses **Atomic's sandbox by default**. `.env.example` points at `http
 - **macOS with Xcode** and an iOS simulator, plus CocoaPods, to build the app
 - **An Atomic account**, to get sandbox API keys from the Atomic console. If you don't have one, contact Atomic to get set up.
 - **An Anthropic account**, to get an API key from the [Claude Console](https://console.anthropic.com/settings/keys)
-- **[ngrok](https://ngrok.com)** or another tunnel, if you want Atomic's webhooks to reach your machine
+- **[ngrok](https://ngrok.com)** or another tunnel, so Atomic's webhooks can reach your machine
 
 ### 1. Install
 
@@ -120,15 +120,17 @@ npm run ios
 
 This builds the app, installs it on the simulator and starts Metro. The first build takes a few minutes. The header shows **Online** once the app's WebSocket connects.
 
-### 5. Receive webhooks (optional)
+### 5. Receive webhooks
 
-Without webhooks, the agent can still respond to the Transact SDK's events. To have it follow up when Atomic finishes a task, expose the server and register the URL with Atomic:
+Webhooks are how the agent learns whether a cancellation went through. The Transact SDK's events only say that the user left the Atomic screen, not how the task ended. Without webhooks, the agent can't confirm any outcome.
+
+Expose the server and register the URL with Atomic:
 
 ```sh
 ngrok http 3000
 ```
 
-Then set your webhook URL in the Atomic console to `https://<your-ngrok-domain>/webhooks/atomic`. On a free ngrok plan, the domain changes each time ngrok restarts.
+Then add a webhook endpoint in the Atomic console at `https://<your-ngrok-domain>/webhooks/atomic`, subscribed to `task-status-updated`. Include the `/webhooks/atomic` path. On a free ngrok plan, the domain changes each time ngrok restarts.
 
 To try the flow without Atomic, you can send a webhook yourself while the app is open:
 

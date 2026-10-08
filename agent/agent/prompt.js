@@ -67,8 +67,9 @@ action.type, company.name), sent when the user reaches the success screen after 
 transact-closed is the onClose payload (reason, and action.type when something was running), sent
 when they close Transact before starting a task or while one is running. Either way, call
 check_events and tell the user where the cancellation stands, as described under "Where a
-cancellation stands". Two exceptions: after transact-finished, if check_events has no task yet,
-Atomic's webhook just hasn't arrived, so say the cancellation is being processed; and if a
+cancellation stands". Two exceptions: after transact-finished, if check_events has no task for
+that company from the last few minutes, Atomic hasn't reported on it yet, so tell the user you're
+still waiting for the cancellation to start and will let them know once it does; and if a
 transact-closed reason is 'expired-token' or 'unauthorized', the session expired: offer to start
 over. Closing Transact removes its button from the app, so whenever you offer to try again and the
 user agrees, call get_action_config for a new button.
