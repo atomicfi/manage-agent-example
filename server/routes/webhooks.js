@@ -4,9 +4,12 @@ import { Router } from "express";
 import { saveTaskStatusUpdatedEvent } from "../db.js";
 import { enqueueSystemEvent } from "../queue.js";
 
+// Where Atomic sends this app's webhooks. index.js mounts this router at /webhooks.
+export const WEBHOOK_PATH = "/webhooks/atomic/manage-agent";
+
 export const webhookRouter = Router();
 
-webhookRouter.post("/atomic", (req, res) => {
+webhookRouter.post("/atomic/manage-agent", (req, res) => {
   const event = req.body ?? {};
   if (event.eventType === "task-status-updated" && event.product === "action") {
     handleTaskStatusUpdated(event);
@@ -53,4 +56,3 @@ function handleTaskStatusUpdated(event) {
     });
   }
 }
-

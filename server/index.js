@@ -13,6 +13,7 @@ const { threadIdFor } = await import("./queue.js");
 const { userMessageRouter } = await import("./routes/user-message.js");
 const { transactEventsRouter } = await import("./routes/transact-events.js");
 const { webhookRouter } = await import("./routes/webhooks.js");
+const { setupNgrokTunnel, setWebhooks, removeWebhooks } = await import("./webhook-config.js");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -25,12 +26,24 @@ app.use("/user-message", userMessageRouter);
 // Transact SDK onFinish and onClose events from the app, at /transact-events.
 app.use("/transact-events", transactEventsRouter);
 
-// Atomic webhooks, at /webhooks/atomic.
+// Atomic webhooks, at /webhooks/atomic/manage-agent.
 app.use("/webhooks", webhookRouter);
 
-const server = app.listen(port, () => {
+// Once listening, open the ngrok tunnel and point Atomic's webhooks at it.
+const server = app.listen(port, async () => {
   console.log(`Listening on http://localhost:${port}`);
+  const tunnelUrl = await setupNgrokTunnel(port);
+  if (tunnelUrl) await setWebhooks(tunnelUrl);
 });
+
+// On Ctrl+C, or when node --watch restarts the server, delete this run's
+// webhook endpoint before exiting.
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.once(signal, async () => {
+    await removeWebhooks();
+    process.exit(0);
+  });
+}
 
 // The app listens here for the agent's messages on the user's thread.
 const wss = new WebSocketServer({ server, path: "/ws" });
