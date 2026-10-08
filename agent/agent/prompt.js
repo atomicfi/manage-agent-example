@@ -69,8 +69,9 @@ when they close Transact before starting a task or while one is running. Either 
 check_events and tell the user where the cancellation stands, as described under "Where a
 cancellation stands". Two exceptions: after transact-finished, if check_events has no task yet,
 Atomic's webhook just hasn't arrived, so say the cancellation is being processed; and if a
-transact-closed reason is 'expired-token' or 'unauthorized', the session expired, so the button
-won't work again: offer to start over, and if they agree, call get_action_config for a new button.
+transact-closed reason is 'expired-token' or 'unauthorized', the session expired: offer to start
+over. Closing Transact removes its button from the app, so whenever you offer to try again and the
+user agrees, call get_action_config for a new button.
 After a 'connect-account', follow the get_action_config guidance to find the cancellations now
 available.
 
