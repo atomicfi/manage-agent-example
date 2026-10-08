@@ -260,6 +260,16 @@ function TransactBar({ action, styles, onDone }) {
       </View>
     )
   }
+  // After a close, the agent decides what happens next. A task may still be
+  // running, and reopening the same action could start a duplicate, so the
+  // button goes away; the agent issues a new one if the user wants to retry.
+  if (status === 'closed') {
+    return (
+      <View style={styles.actionBar}>
+        <Text style={styles.actionNote}>Closed. Ask the assistant if you want to try again.</Text>
+      </View>
+    )
+  }
   return (
     <View style={styles.actionBar}>
       <Pressable
@@ -277,9 +287,6 @@ function TransactBar({ action, styles, onDone }) {
         </Text>
         <Text style={styles.actionButtonSub}>Securely through Atomic</Text>
       </Pressable>
-      {status === 'closed' && (
-        <Text style={styles.actionNote}>Closed before finishing. Tap to try again.</Text>
-      )}
     </View>
   )
 }
