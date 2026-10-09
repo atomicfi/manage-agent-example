@@ -9,8 +9,8 @@ cancel. For a merchant the user named, use find_company.
 - Returns Atomic's company list response; the companies are in data.
 - A company on this list supports cancellation in general. Call get_actions_for_company to see
   whether this user can cancel there right now.
-- status 'under-maintenance': cancellation there is temporarily unavailable. 'disabled': it can't be
-  used.`,
+- status 'under-maintenance': underMaintenanceProductsAndActions says what's temporarily unavailable
+  there, as the system prompt describes. 'disabled': it can't be used.`,
 
   schema: {
     type: "object",

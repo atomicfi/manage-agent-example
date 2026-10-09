@@ -15,10 +15,15 @@ the user names a merchant, before you say whether Atomic can help with it.
   merchant, and don't draw conclusions about other merchants.
 - Returns Atomic's company search response; the companies are in data.
 - availableActions without 'cancel-plan': Atomic can't cancel subscriptions at this company.
-- availableActions with 'cancel-plan': call get_actions_for_company next with the company's _id. It
-  tells you whether this user can cancel there right now, or has to sign in first.
+- managedBy lists the companies that can manage this company's subscriptions. If it includes any
+  provider other than the company itself, ask the user where they pay for it before going further,
+  as the system prompt describes.
+- availableActions with 'cancel-plan': once you know the user pays the company directly, call
+  get_actions_for_company next with the company's _id. It tells you whether this user can cancel
+  there right now, or has to sign in first.
 - status describes the whole company. 'disabled' means it can't be used. For 'under-maintenance',
-  still call get_actions_for_company.`,
+  check underMaintenanceProductsAndActions, as the system prompt describes: if 'cancel-plan' or
+  'connect-account' isn't under maintenance, still call get_actions_for_company.`,
 
   schema: {
     type: "object",

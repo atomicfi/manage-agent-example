@@ -47,14 +47,19 @@ export function createAtomicClient({
     // https://docs.atomicfi.com/paylink/reference/api#company__company-search
     searchCompanies(query) {
       return request("POST", "/company/search", {
-        body: { query, scopes: ["pay-link"] },
+        body: { query, scopes: ["pay-link"], includeManaged: true },
       });
     },
 
     // GET /company/list
     // https://docs.atomicfi.com/paylink/reference/api#company__company-list
     listCompanies({ actions, limit = 100, skip = 0 } = {}) {
-      const qs = new URLSearchParams({ scope: "pay-link", limit, skip });
+      const qs = new URLSearchParams({
+        scope: "pay-link",
+        limit,
+        skip,
+        includeManaged: "true",
+      });
       if (actions) qs.set("actions", actions);
       return request("GET", `/company/list?${qs}`);
     },
@@ -98,7 +103,10 @@ export function createAtomicClient({
     // DELETE /webhooks/endpoints/:_id
     // https://docs.atomicfi.com/reference/api#webhooks__delete-endpoint
     deleteWebhookEndpoint(endpointId) {
-      return request("DELETE", `/webhooks/endpoints/${encodeURIComponent(endpointId)}`);
+      return request(
+        "DELETE",
+        `/webhooks/endpoints/${encodeURIComponent(endpointId)}`,
+      );
     },
 
     // GET /secrets. The account's API secrets; a webhook endpoint signs with one.
