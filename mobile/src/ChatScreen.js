@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -16,6 +18,10 @@ import Markdown from 'react-native-markdown-display'
 import { connect, sendMessage, sendTransactEvent } from './api'
 import { launchTransact } from './transact'
 import { useTheme } from './theme'
+
+// Atomic's icon, shown on the Transact button. Rendered from Atomic's logo.svg as PNGs
+// at 1x, 2x and 3x, since the app doesn't draw SVGs.
+const ATOMIC_LOGO = require('../assets/atomic-logo.png')
 
 const SUGGESTIONS = [
   'What subscriptions do I have?',
@@ -54,6 +60,8 @@ export default function ChatScreen() {
     if (!text || busy) return
     setInput('')
     setMessages((m) => [...m, { id: Crypto.randomUUID(), role: 'user', text }])
+    // Back to the newest message, in case the user had scrolled up.
+    listRef.current?.scrollToOffset({ offset: 0, animated: true })
     queueForAgent(() => sendMessage(text))
   }
 
@@ -71,7 +79,10 @@ export default function ChatScreen() {
     }
   }
 
-  const scrollToEnd = () => listRef.current?.scrollToEnd({ animated: true })
+  // Newest first, for the inverted list below. An inverted list is anchored to
+  // its bottom edge, so the newest message and the typing indicator stay in view
+  // when the keyboard or the Transact button takes up room.
+  const thread = useMemo(() => [...messages].reverse(), [messages])
 
   // The latest Transact action, pinned above the composer.
   const transactAction = useMemo(
@@ -84,7 +95,7 @@ export default function ChatScreen() {
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Avatar styles={styles} />
         <View>
-          <Text style={styles.title}>Subscription Assistant</Text>
+          <Text style={styles.title}>Atomic Subscription Manager</Text>
           <View style={styles.statusRow}>
             <View style={[styles.dot, !connected && styles.dotOffline]} />
             <Text style={styles.status}>{connected ? 'Online' : 'Connecting…'}</Text>
@@ -96,20 +107,33 @@ export default function ChatScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <FlatList
-          ref={listRef}
-          style={styles.flex}
-          contentContainerStyle={[styles.list, messages.length === 0 && styles.listEmpty]}
-          data={messages}
-          keyExtractor={(m) => m.id}
-          onContentSizeChange={scrollToEnd}
-          onLayout={scrollToEnd}
-          keyboardDismissMode="interactive"
-          keyboardShouldPersistTaps="handled"
-          ListEmptyComponent={<Welcome styles={styles} onPick={send} />}
-          renderItem={({ item }) => <Message item={item} styles={styles} theme={theme} />}
-          ListFooterComponent={busy ? <TypingIndicator styles={styles} /> : null}
-        />
+        {messages.length === 0 && !busy ? (
+          // The welcome screen sits outside the inverted list, which would flip it.
+          // It gives way to the list as soon as the agent is busy, so the typing
+          // indicator shows even before the first message.
+          <ScrollView
+            style={styles.flex}
+            contentContainerStyle={[styles.list, styles.listEmpty]}
+            keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
+          >
+            <Welcome styles={styles} onPick={send} />
+          </ScrollView>
+        ) : (
+          <FlatList
+            ref={listRef}
+            style={styles.flex}
+            contentContainerStyle={styles.list}
+            inverted
+            data={thread}
+            keyExtractor={(m) => m.id}
+            keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => <Message item={item} styles={styles} theme={theme} />}
+            // In an inverted list the header renders at the bottom, under the newest message.
+            ListHeaderComponent={busy ? <TypingIndicator styles={styles} /> : null}
+          />
+        )}
 
         {transactAction && (
           <TransactBar
@@ -133,7 +157,7 @@ export default function ChatScreen() {
             style={styles.input}
             value={input}
             onChangeText={setInput}
-            placeholder="Message Subscription Assistant…"
+            placeholder="Message Subscription Manager…"
             placeholderTextColor={theme.muted}
             multiline
             submitBehavior="submit"
@@ -161,7 +185,7 @@ export default function ChatScreen() {
 function Avatar({ styles, large }) {
   return (
     <View style={[styles.avatar, large && styles.avatarLarge]}>
-      <Text style={[styles.avatarText, large && styles.avatarTextLarge]}>S</Text>
+      <Text style={[styles.avatarText, large && styles.avatarTextLarge]}>A</Text>
     </View>
   )
 }
@@ -220,6 +244,8 @@ function Message({ item, styles, theme }) {
 function TransactBar({ action, styles, onDone }) {
   // idle → open (Transact on screen) → finished | closed
   const [status, setStatus] = useState('idle')
+  // The company's logo from the backend, shown on the button when there is one.
+  const logo = action.logo?.url ? action.logo : null
   // Transact can report both finish and close; signal the agent once per open,
   // with whichever came first.
   const signalled = useRef(false)
@@ -282,10 +308,22 @@ function TransactBar({ action, styles, onDone }) {
           pressed && styles.actionButtonPressed
         ]}
       >
-        <Text style={styles.actionButtonText}>
-          {status === 'open' ? 'Opening…' : action.label}
-        </Text>
-        <Text style={styles.actionButtonSub}>Securely through Atomic</Text>
+        {logo && (
+          <View style={styles.actionLogoSlot}>
+            <View style={[styles.actionLogo, { backgroundColor: logo.backgroundColor ?? '#ffffff' }]}>
+              <Image source={{ uri: logo.url }} style={styles.actionLogoImage} resizeMode="contain" />
+            </View>
+          </View>
+        )}
+        <View style={styles.actionButtonLabels}>
+          <Text style={styles.actionButtonText}>
+            {status === 'open' ? 'Opening…' : action.label}
+          </Text>
+          <Text style={styles.actionButtonSub}>Securely through Atomic</Text>
+        </View>
+        <View style={[styles.actionLogoSlot, styles.actionLogoSlotRight]}>
+          <Image source={ATOMIC_LOGO} style={styles.atomicLogo} resizeMode="contain" />
+        </View>
       </Pressable>
     </View>
   )
@@ -357,7 +395,8 @@ const makeStyles = (t) =>
       width: 32,
       height: 32,
       borderRadius: 16,
-      backgroundColor: '#6d5df5',
+      // Atomic's brand purple (indigo-500 on docs.atomicfi.com).
+      backgroundColor: '#6035DB',
       alignItems: 'center',
       justifyContent: 'center'
     },
@@ -391,23 +430,48 @@ const makeStyles = (t) =>
       borderTopColor: t.border
     },
     actionButton: {
-      backgroundColor: t.danger,
+      backgroundColor: t.surface,
       minHeight: 60,
       paddingHorizontal: 20,
       paddingVertical: 12,
       borderRadius: 16,
+      borderWidth: 1,
+      borderColor: t.border,
       alignItems: 'center',
       justifyContent: 'center',
-      shadowColor: t.danger,
-      shadowOpacity: 0.3,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 4
+      shadowColor: '#000000',
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 2
     },
+    // Room on both sides for the logos, so the labels stay centered on the button.
+    actionButtonLabels: { alignItems: 'center', paddingHorizontal: 40 },
+    // Pins a logo to the button's left edge, vertically centered, outside the
+    // labels' layout. actionLogoSlotRight moves it to the right edge.
+    actionLogoSlot: {
+      position: 'absolute',
+      left: 14,
+      top: 0,
+      bottom: 0,
+      justifyContent: 'center'
+    },
+    actionLogoSlotRight: { left: undefined, right: 14 },
+    atomicLogo: { width: 36, height: 31 },
+    // The company's logo on its own background color, like an app icon.
+    actionLogo: {
+      width: 36,
+      height: 36,
+      borderRadius: 9,
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden'
+    },
+    actionLogoImage: { width: 28, height: 28 },
     actionButtonBusy: { opacity: 0.6 },
     actionButtonPressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
-    actionButtonText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-    actionButtonSub: { color: 'rgba(255,255,255,0.85)', fontSize: 12, marginTop: 2 },
+    actionButtonText: { color: t.text, fontSize: 18, fontWeight: '700' },
+    actionButtonSub: { color: t.muted, fontSize: 12, marginTop: 2 },
     actionDone: {
       minHeight: 52,
       borderRadius: 16,

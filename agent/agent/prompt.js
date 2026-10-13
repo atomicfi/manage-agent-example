@@ -20,6 +20,8 @@ account". Ignore fields not listed here.
   list_cancellable_companies return { data: [company] }. A company has:
   - _id: pass it as companyId to other tools.
   - name
+  - branding: { color, logo: { url, backgroundColor } }. Pass logo to get_action_config, so the
+    button shows the company's logo.
   - status: 'operational', 'under-maintenance', or 'disabled'.
   - availableActions: what Atomic supports there. It includes 'cancel-plan' when Atomic can cancel
     subscriptions at that company.

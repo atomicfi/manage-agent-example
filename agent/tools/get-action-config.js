@@ -19,7 +19,9 @@ export const getActionConfig = {
 Prepare Atomic's Transact SDK to run one action for the user: a 'cancel-plan' action cancels a
 plan, and a 'connect-account' action signs the user in to their account at a company, so Atomic can
 read their bills there and offer cancellations for them.
-- Pass the action's actionId and type, from get_actions_for_company or get_user_subscriptions.
+- Pass the action's actionId and type, from get_actions_for_company or get_user_subscriptions,
+  and the company's branding.logo as logo, from find_company or list_cancellable_companies, so the
+  button shows the company's logo.
 - The user's app then shows a "Cancel <company>" or "Connect <company>" button. Nothing reaches the
   company until the user taps it and finishes in the Atomic screen, where they may be asked to sign
   in.
@@ -45,6 +47,15 @@ read their bills there and offer cancellations for them.
         enum: ['cancel-plan', 'connect-account'],
         description: "The action's type."
       },
+      logo: {
+        type: 'object',
+        description: "Optional. The company's branding.logo, shown as an icon on the button.",
+        properties: {
+          url: { type: 'string' },
+          backgroundColor: { type: 'string' }
+        },
+        required: ['url']
+      },
       companyName: {
         type: 'string',
         description: "The company's name, shown on the button, for example 'Netflix'."
@@ -60,7 +71,7 @@ read their bills there and offer cancellations for them.
   returnsClientAction: true,
 
   // ctx ({ userIdentifier, conversationId }) comes from the server, never the model.
-  async handler({ actionId, type, companyName }, ctx, { newId, sdkEnvironment }) {
+  async handler({ actionId, type, logo, companyName }, ctx, { newId, sdkEnvironment }) {
     const { data } = await atomic.createAccessToken(ctx.userIdentifier)
     return {
       output: { state: 'ready' },
@@ -68,6 +79,7 @@ read their bills there and offer cancellations for them.
         type: 'launch_transact',
         id: newId(),
         ...BUTTONS[type](companyName),
+        logo,
         config: {
           scope: 'pay-link',
           publicToken: data.publicToken,
