@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Crypto from 'expo-crypto'
 import Markdown from 'react-native-markdown-display'
+import pick from 'lodash/pick'
 import { connect, sendMessage, sendTransactEvent } from './api'
 import { launchTransact } from './transact'
 import { useTheme } from './theme'
@@ -261,14 +262,17 @@ function TransactBar({ action, styles, onDone }) {
     signalled.current = false
     try {
       launchTransact(action, {
+        // Only the fields the agent uses go to it, under the SDK's own names:
+        // https://docs.atomicfi.com/paylink/reference/transact-sdk#event-listeners__onfinish
         onFinish: (data) => {
           setStatus('finished')
-          done('finish', data)
+          done('finish', pick(data, ['taskId', 'action.type', 'company.name']))
         },
         // Closing isn't an outcome: Transact may keep working briefly after.
         onClose: (data) => {
           setStatus((s) => (s === 'finished' ? s : 'closed'))
-          done('close', data)
+          // https://docs.atomicfi.com/paylink/reference/transact-sdk#event-listeners__onclose
+          done('close', pick(data, ['reason', 'action.type']))
         }
       })
     } catch (err) {

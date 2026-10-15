@@ -8,8 +8,8 @@ export function sendMessage(message) {
 }
 
 // Forwards a Transact SDK event to the agent: event is 'finish' (onFinish) or
-// 'close' (onClose), data is the SDK's payload. The agent's follow-up arrives on
-// the WebSocket.
+// 'close' (onClose), data is the fields of the SDK's payload the agent uses. The
+// agent's follow-up arrives on the WebSocket.
 export function sendTransactEvent(event, data) {
   return post('/transact-events', { event, data })
 }

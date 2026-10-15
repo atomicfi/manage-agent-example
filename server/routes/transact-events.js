@@ -6,8 +6,8 @@ import { enqueueSystemEvent } from "../queue.js";
 
 export const transactEventsRouter = Router();
 
-// event is 'finish' (onFinish) or 'close' (onClose); data is the SDK's payload,
-// which goes to the agent as the SDK sent it.
+// event is 'finish' (onFinish) or 'close' (onClose); data is the fields of the
+// SDK's payload the agent uses, which the app picks out. It goes to the agent as is.
 const EVENT_TYPES = { finish: "transact-finished", close: "transact-closed" };
 
 transactEventsRouter.post("/", (req, res) => {
