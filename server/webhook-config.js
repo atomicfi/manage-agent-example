@@ -10,11 +10,16 @@ import { WEBHOOK_PATH } from "./routes/webhooks.js";
 let endpointId;
 
 // Opens a public ngrok tunnel to this server, so Atomic's webhooks can reach it. Reads
-// NGROK_AUTHTOKEN from the environment, and the URL changes on every start. Resolves to the
-// tunnel's public URL, or null if it couldn't be opened.
+// NGROK_AUTHTOKEN from the environment. The URL changes on every start, unless NGROK_DOMAIN is
+// set to a domain reserved on a paid ngrok plan. Resolves to the tunnel's public URL, or null if
+// it couldn't be opened.
 export async function setupNgrokTunnel(port) {
   try {
-    const listener = await ngrok.forward({ addr: port, authtoken_from_env: true });
+    const listener = await ngrok.forward({
+      addr: port,
+      authtoken_from_env: true,
+      domain: process.env.NGROK_DOMAIN || undefined,
+    });
     console.log(`[ngrok] Tunnel open at ${listener.url()}`);
     return listener.url();
   } catch (err) {

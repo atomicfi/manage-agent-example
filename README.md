@@ -96,9 +96,10 @@ ATOMIC_API_KEY=...       # sandbox key from the Atomic console
 ATOMIC_API_SECRET=...    # sandbox secret from the Atomic console
 USER_IDENTIFIER=...      # required: the user every chat acts as, such as test-user-1
 NGROK_AUTHTOKEN=...      # from the ngrok dashboard
+NGROK_DOMAIN=            # optional: a reserved domain on a paid ngrok plan
 ```
 
-All of these are required. If any is missing, the server stops at startup and lists the ones it needs.
+All of these except `NGROK_DOMAIN` are required. If any is missing, the server stops at startup and lists the ones it needs.
 
 Tell the app where the server is in `mobile/.env`:
 
@@ -131,7 +132,7 @@ Webhooks are how the agent learns whether a cancellation went through. The Trans
 
 The server sets them up for you when it starts:
 
-1. It opens an ngrok tunnel to itself, using `NGROK_AUTHTOKEN`. The tunnel gets a new URL every time.
+1. It opens an ngrok tunnel to itself, using `NGROK_AUTHTOKEN`. The tunnel gets a new URL every time, unless you set `NGROK_DOMAIN` to a domain reserved on a paid ngrok plan.
 2. It creates a new endpoint at `<tunnel URL>/webhooks/atomic/manage-agent` for `task-status-updated`, signed with your API secret named `default`, or your first secret if none has that name.
 
 When the server stops, with Ctrl+C or when `npm run dev` restarts it after a change, it deletes the endpoint it created. If it's killed outright, the endpoint stays in Atomic, and you can delete it in the Atomic console.
