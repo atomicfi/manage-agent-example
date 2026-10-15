@@ -94,8 +94,11 @@ ANTHROPIC_API_KEY=sk-ant-...
 ATOMIC_API_BASE_URL=https://sandbox-api.atomicfi.com
 ATOMIC_API_KEY=...       # sandbox key from the Atomic console
 ATOMIC_API_SECRET=...    # sandbox secret from the Atomic console
+USER_IDENTIFIER=...      # required: the user every chat acts as, such as test-user-1
 NGROK_AUTHTOKEN=...      # from the ngrok dashboard
 ```
+
+All of these are required. If any is missing, the server stops at startup and lists the ones it needs.
 
 Tell the app where the server is in `mobile/.env`:
 
@@ -110,7 +113,7 @@ EXPO_PUBLIC_API_URL=http://localhost:3000
 npm run dev
 ```
 
-It listens on `http://localhost:3000` and creates `data.db` with one test user, `test-user-1`. Every chat acts as that user. It also opens an ngrok tunnel and points Atomic's webhooks at it; see step 5.
+It listens on `http://localhost:3000` and creates `data.db` with one test user, `USER_IDENTIFIER` from `.env`. Every chat acts as that user. It also opens an ngrok tunnel and points Atomic's webhooks at it; see step 5.
 
 ### 4. Start the app
 
@@ -140,7 +143,7 @@ To try the flow without Atomic, you can send a webhook yourself while the app is
 ```sh
 curl -X POST localhost:3000/webhooks/atomic/manage-agent -H 'content-type: application/json' -d '{
   "eventType": "task-status-updated", "product": "action", "task": "demo-task-1",
-  "user": { "identifier": "test-user-1" }, "company": { "name": "Netflix" },
+  "user": { "identifier": "<your USER_IDENTIFIER>" }, "company": { "name": "Netflix" },
   "data": { "status": "completed", "flow": "cancel-plan" }
 }'
 ```

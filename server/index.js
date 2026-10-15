@@ -7,6 +7,25 @@ import { WebSocketServer } from "ws";
 const envPath = fileURLToPath(new URL("../.env", import.meta.url));
 if (existsSync(envPath)) process.loadEnvFile(envPath);
 
+// The app doesn't work without these; .env.example says what each one is for.
+// USER_IDENTIFIER is the user every chat acts as, and the identifier Atomic
+// knows them by.
+const REQUIRED_ENV = [
+  "ANTHROPIC_API_KEY",
+  "ATOMIC_API_BASE_URL",
+  "ATOMIC_API_KEY",
+  "ATOMIC_API_SECRET",
+  "USER_IDENTIFIER",
+  "NGROK_AUTHTOKEN",
+];
+const missingEnv = REQUIRED_ENV.filter((name) => !process.env[name]);
+if (missingEnv.length > 0) {
+  throw new Error(
+    `Missing required environment variables: ${missingEnv.join(", ")}. ` +
+      "Add them to .env; see .env.example.",
+  );
+}
+
 const { getCurrentUser } = await import("./db.js");
 const { subscribe } = await import("./bus.js");
 const { threadIdFor } = await import("./queue.js");

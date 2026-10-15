@@ -14,10 +14,10 @@ db.exec(`
   )
 `)
 
-// Seed one test user so there is someone to chat as.
+// Seed the user from USER_IDENTIFIER so there is someone to chat as.
 db.prepare(
   'INSERT OR IGNORE INTO users (id, firstname, lastname) VALUES (?, ?, ?)'
-).run('test-user-1', 'Test', 'User')
+).run(process.env.USER_IDENTIFIER, 'Test', 'User')
 
 export function getUser(id) {
   return db.prepare('SELECT id, firstname, lastname FROM users WHERE id = ?').get(id)
@@ -25,7 +25,7 @@ export function getUser(id) {
 
 // No login yet: every request from the app acts as the seeded test user.
 export function getCurrentUser() {
-  return getUser('test-user-1')
+  return getUser(process.env.USER_IDENTIFIER)
 }
 
 // The latest status of each Atomic task, from task-status-updated webhooks.

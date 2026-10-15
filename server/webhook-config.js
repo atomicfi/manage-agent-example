@@ -13,13 +13,6 @@ let endpointId;
 // NGROK_AUTHTOKEN from the environment, and the URL changes on every start. Resolves to the
 // tunnel's public URL, or null if it couldn't be opened.
 export async function setupNgrokTunnel(port) {
-  if (!process.env.NGROK_AUTHTOKEN) {
-    console.error(
-      "[ngrok] Error: NGROK_AUTHTOKEN isn't set, so Atomic's webhooks can't reach this server. " +
-        "The app won't work properly without them.",
-    );
-    return null;
-  }
   try {
     const listener = await ngrok.forward({ addr: port, authtoken_from_env: true });
     console.log(`[ngrok] Tunnel open at ${listener.url()}`);
