@@ -31,7 +31,7 @@ const { subscribe } = await import("./bus.js");
 const { threadIdFor } = await import("./queue.js");
 const { userMessageRouter } = await import("./routes/user-message.js");
 const { transactEventsRouter } = await import("./routes/transact-events.js");
-const { webhookRouter } = await import("./routes/webhooks.js");
+const { webhookRouter, WEBHOOK_PATH } = await import("./routes/webhooks.js");
 const { setupNgrokTunnel, setWebhooks, removeWebhooks } = await import("./webhook-config.js");
 
 const app = express();
@@ -45,8 +45,8 @@ app.use("/user-message", userMessageRouter);
 // Transact SDK onFinish and onClose events from the app, at /transact-events.
 app.use("/transact-events", transactEventsRouter);
 
-// Atomic webhooks, at /webhooks/atomic/manage-agent.
-app.use("/webhooks", webhookRouter);
+// Atomic webhooks, at /webhooks/atomic.
+app.use(WEBHOOK_PATH, webhookRouter);
 
 // Once listening, open the ngrok tunnel and point Atomic's webhooks at it.
 const server = app.listen(port, async () => {
