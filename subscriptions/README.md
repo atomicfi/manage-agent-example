@@ -26,7 +26,7 @@ Everything the agent responds to goes through one queue. Three things write to i
 
 - **The user's messages** go to `POST /user-message`, and the server queues them.
 - **Transact SDK events**: when the user leaves the Atomic screen, the app sends the SDK's `onFinish` or `onClose` payload to `POST /transact-events`. The server queues it as a system event, so the agent can check on the task and follow up.
-- **Atomic webhooks** arrive at `POST /webhooks/atomic/manage-agent`. `task-status-updated` events are saved to SQLite, and when a task finishes, the server also queues it. A cancellation is followed by a refresh task that resyncs the user's data; once the refresh completes, the agent reads the account to confirm the cancellation.
+- **Atomic webhooks** arrive at `POST /webhooks/atomic`. `task-status-updated` events are saved to SQLite, and when a task finishes, the server also queues it. A cancellation is followed by a refresh task that resyncs the user's data; once the refresh completes, the agent reads the account to confirm the cancellation.
 - **The agent** sees system events as `<system_event type="…">` messages the user never sees. Its system prompt says how to respond to each type.
 - **Replies** go to the app over the WebSocket, along with `busy` (for the typing indicator) and `error` events. Each user has one thread, keyed by their user ID.
 
@@ -43,7 +43,7 @@ server/
   queue.js      Per-thread message queue; runs the agent's turns
   bus.js        Sends events to the WebSockets listening on a thread
   db.js         SQLite: the test user and stored webhook events
-  routes/       /user-message, /transact-events, /webhooks/atomic/manage-agent
+  routes/       /user-message, /transact-events, /webhooks/atomic
 mobile/         Expo app: chat screen, API client, Transact launcher
 ```
 
@@ -140,7 +140,7 @@ Webhooks are how the agent learns whether a cancellation went through. The Trans
 The server sets them up for you when it starts:
 
 1. It opens an ngrok tunnel to itself, using `NGROK_AUTHTOKEN`. The tunnel gets a new URL every time, unless you set `NGROK_DOMAIN` to a domain reserved on a paid ngrok plan.
-2. It creates a new endpoint at `<tunnel URL>/webhooks/atomic/manage-agent` for `task-status-updated`, signed with your API secret named `default`, or your first secret if none has that name.
+2. It creates a new endpoint at `<tunnel URL>/webhooks/atomic` for `task-status-updated`, signed with your API secret named `default`, or your first secret if none has that name.
 
 When the server stops, with Ctrl+C or when `npm run dev` restarts it after a change, it deletes the endpoint it created. If it's killed outright, the endpoint stays in Atomic, and you can delete it in the Atomic console.
 
@@ -149,7 +149,7 @@ The log shows the tunnel and the endpoint it registered. If any step fails, the 
 To try the flow without Atomic, you can send a webhook yourself while the app is open:
 
 ```sh
-curl -X POST localhost:3000/webhooks/atomic/manage-agent -H 'content-type: application/json' -d '{
+curl -X POST localhost:3000/webhooks/atomic -H 'content-type: application/json' -d '{
   "eventType": "task-status-updated", "product": "action", "task": "demo-task-1",
   "user": { "identifier": "<your USER_IDENTIFIER>" }, "company": { "name": "Netflix" },
   "data": { "status": "completed", "flow": "cancel-plan" }
