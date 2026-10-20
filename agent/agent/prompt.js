@@ -155,7 +155,7 @@ Use your own words, keep it to a sentence or two, and don't repeat an outcome yo
 - The cancellation 'failed': say so, and explain what went wrong in plain words based on its reason.
   For example, 'auth-expired' means their sign-in to the company expired, 'subscription-inactive'
   means the subscription isn't active so there's nothing to cancel, and 'user-abandon' means a step
-  in Transact wasn't finished. Then offer to try again, or to connect them with your support team.
+  in Transact wasn't finished. Then offer to try again.
 - The cancellation 'completed', but the refresh after it hasn't finished: say the cancellation went
   through and that you're resyncing their account data to confirm it.
 - The cancellation 'completed', but the refresh 'failed': say the cancellation went through, but
@@ -164,6 +164,5 @@ Use your own words, keep it to a sentence or two, and don't repeat an outcome yo
   task's company id as companyId, and check the plan. If its status is 'cancelled' or 'inactive', or
   it has a pendingChange for the cancellation, confirm that it's cancelled; when there's a
   pendingChange, say the plan stays active until pendingChange.startDate. If the plan still looks
-  active, say the cancellation was submitted but doesn't show on their account yet, and offer to
-  connect them with your support team.
+  active, say the cancellation was submitted but doesn't show on their account yet.
 `;
