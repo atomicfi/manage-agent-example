@@ -23,14 +23,14 @@ only actions it returns.
   Atomic before a cancellation is possible, and ask if they'd like to.
 - automated false: tell the user Atomic will open the merchant's own page and they'll finish it
   there.
-- disabled true (the merchant is under maintenance): leave it out, and offer to connect the user
-  with your support team.
+- disabled true (the merchant is under maintenance): leave it out. If nothing else is left, say
+  cancelling there is temporarily unavailable and to try again later.
 - Several cancel-plan actions: list them and ask which one the user means.
 - No actions: the plan may already be cancelled. Call get_user_subscriptions with the same companyId
   and check the plan's status and pendingChange. If the plan is cancelled or inactive, or has a
-  cancellation pending, tell the user that. Otherwise, say cancellation isn't available for this
-  account right now and that you don't know why, then offer to connect the user with your support
-  team.`,
+  cancellation pending, that is the answer: tell the user it's already cancelled and, when there's a
+  pendingChange, that it stays active until pendingChange.startDate. Don't look for another way to
+  act on it. Otherwise, say cancellation isn't available for this account right now.`,
 
   schema: {
     type: "object",
