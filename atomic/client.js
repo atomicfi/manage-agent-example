@@ -88,31 +88,5 @@ export function createAtomicClient({
     createAccessToken(identifier) {
       return request("POST", "/access-token", { body: { identifier } });
     },
-
-    // The endpoints below only set up Atomic's webhooks automatically when you run
-    // this app locally (see server/webhook-config.js). The agent's tools don't use them.
-
-    // POST /webhooks/endpoints. Registers a URL to receive the given event types.
-    // https://docs.atomicfi.com/reference/api#webhooks__create-endpoint
-    createWebhookEndpoint({ url, secretId, eventTypes }) {
-      return request("POST", "/webhooks/endpoints", {
-        body: { url, secretId, eventTypes },
-      });
-    },
-
-    // DELETE /webhooks/endpoints/:_id
-    // https://docs.atomicfi.com/reference/api#webhooks__delete-endpoint
-    deleteWebhookEndpoint(endpointId) {
-      return request(
-        "DELETE",
-        `/webhooks/endpoints/${encodeURIComponent(endpointId)}`,
-      );
-    },
-
-    // GET /secrets. The account's API secrets; a webhook endpoint signs with one.
-    // https://docs.atomicfi.com/reference/api#api-secrets__get-api-secrets
-    listSecrets() {
-      return request("GET", "/secrets");
-    },
   };
 }

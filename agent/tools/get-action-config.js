@@ -16,23 +16,23 @@ export const getActionConfig = {
   name: 'get_action_config',
 
   description: `
-Prepare Atomic's Transact SDK to run one action for the user: a 'cancel-plan' action cancels a
-plan, and a 'connect-account' action signs the user in to their account at a company, so Atomic can
-read their bills there and offer cancellations for them.
-- Pass the action's actionId and type, from get_actions_for_company or get_user_subscriptions,
-  and the company's branding.logo as logo, from find_company or list_cancellable_companies, so the
+Prepare Atomic's Transact SDK to run one action for the user: a 'cancel-plan' action cancels a plan,
+and a 'connect-account' action signs the user in to their account at a company, so Atomic can read
+their bills there and offer cancellations for them.
+- Pass the action's actionId and type, from get_actions_for_company or get_user_subscriptions, and
+  the company's branding.logo as logo, from find_company or list_cancellable_companies, so the
   button shows the company's logo.
 - The user's app then shows a "Cancel <company>" or "Connect <company>" button. Nothing reaches the
   company until the user taps it and finishes in the Atomic screen, where they may be asked to sign
   in.
 - Never ask for the user's password. Atomic collects sign-in details itself.
-- After calling, tell the user to tap the button to continue. When they leave the Atomic screen, you
-  get a transact-finished or transact-closed event.
+- After calling, tell the user to tap the button to continue. Once the cancellation is over, the
+  app asks you for an update, so you'll tell them how it went.
 - The app shows only the newest button, so a new one replaces any earlier button; never tell the
   user to tap an earlier one.
-- If check_events shows a connect-account task completed, call get_actions_for_company again for
-  the company to find the cancellations now available. Atomic may still be reading the user's bills
-  for a short while; if get_actions_for_company still returns no cancel-plan action for the
+- If check_events shows a connect-account task completed, call get_actions_for_company again for the
+  company to find the cancellations now available. Atomic may still be reading the user's bills for
+  a short while; if get_actions_for_company still returns no cancel-plan action for the
   subscription, tell the user their subscriptions are still loading rather than asking them to sign
   in again.`,
 

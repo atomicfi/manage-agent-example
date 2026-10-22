@@ -28,8 +28,8 @@ export function getCurrentUser() {
   return getUser(process.env.USER_IDENTIFIER)
 }
 
-// The latest status of each Atomic task, from task-status-updated webhooks.
-// action is the webhook's data.flow, such as 'cancel-plan' or 'connect-account'.
+// The latest status of each Atomic task, from the app's Transact onTaskStatusUpdate
+// events. action is the event's actionType, such as 'cancel-plan' or 'connect-account'.
 db.exec(`
   CREATE TABLE IF NOT EXISTS task_status_update_events (
     task_id TEXT PRIMARY KEY,
@@ -51,8 +51,8 @@ for (const column of ['company_id', 'reason']) {
   }
 }
 
-// Atomic retries deliveries, so a late 'processing' can arrive after the
-// task finished. Once a task is completed or failed, keep that status.
+// A late 'processing' can arrive after the task finished. Once a task is
+// completed or failed, keep that status.
 // reason says why a failed task failed. Returns whether the stored row changed.
 export function saveTaskStatusUpdatedEvent({
   taskId,

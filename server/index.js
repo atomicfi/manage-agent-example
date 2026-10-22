@@ -1,7 +1,6 @@
 import express from "express";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { WebSocketServer } from "ws";
 
 // Load the env before importing anything that reads it, such as the Atomic client.
 const envPath = fileURLToPath(new URL("../.env", import.meta.url));
@@ -16,7 +15,6 @@ const REQUIRED_ENV = [
   "ATOMIC_API_KEY",
   "ATOMIC_API_SECRET",
   "USER_IDENTIFIER",
-  "NGROK_AUTHTOKEN",
 ];
 const missingEnv = REQUIRED_ENV.filter((name) => !process.env[name]);
 if (missingEnv.length > 0) {
@@ -26,13 +24,8 @@ if (missingEnv.length > 0) {
   );
 }
 
-const { getCurrentUser } = await import("./db.js");
-const { subscribe } = await import("./bus.js");
-const { threadIdFor } = await import("./queue.js");
 const { userMessageRouter } = await import("./routes/user-message.js");
-const { transactEventsRouter } = await import("./routes/transact-events.js");
-const { webhookRouter } = await import("./routes/webhooks.js");
-const { setupNgrokTunnel, setWebhooks, removeWebhooks } = await import("./webhook-config.js");
+const { taskStatusUpdateRouter } = await import("./routes/task-status-update.js");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -42,30 +35,9 @@ app.use(express.json());
 // The user's chat messages, at /user-message.
 app.use("/user-message", userMessageRouter);
 
-// Transact SDK onFinish and onClose events from the app, at /transact-events.
-app.use("/transact-events", transactEventsRouter);
+// Task status updates from the app's Transact SDK, at /task-status-update.
+app.use("/task-status-update", taskStatusUpdateRouter);
 
-// Atomic webhooks, at /webhooks/atomic/manage-agent.
-app.use("/webhooks", webhookRouter);
-
-// Once listening, open the ngrok tunnel and point Atomic's webhooks at it.
-const server = app.listen(port, async () => {
+app.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
-  const tunnelUrl = await setupNgrokTunnel(port);
-  if (tunnelUrl) await setWebhooks(tunnelUrl);
-});
-
-// On Ctrl+C, or when node --watch restarts the server, delete this run's
-// webhook endpoint before exiting.
-for (const signal of ["SIGINT", "SIGTERM"]) {
-  process.once(signal, async () => {
-    await removeWebhooks();
-    process.exit(0);
-  });
-}
-
-// The app listens here for the agent's messages on the user's thread.
-const wss = new WebSocketServer({ server, path: "/ws" });
-wss.on("connection", (ws) => {
-  subscribe(threadIdFor(getCurrentUser().id), ws);
 });
