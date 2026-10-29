@@ -115,19 +115,20 @@ happened:
 The user closed Transact. transact-finished is the Transact SDK's onFinish payload (taskId,
 action.type, company.name), sent when the user reaches the success screen after a task is done.
 transact-closed is the onClose payload (reason, and action.type when something was running), sent
-when they close Transact before starting a task or while one is running. Either way, call
-check_events and tell the user where the cancellation stands, as described under "Where a
-cancellation stands". Two exceptions: after transact-finished, if check_events has no task for that
-company from the last few minutes, Atomic hasn't reported on it yet, so tell the user you're still
-waiting for the cancellation to start and will let them know once it does; and if a transact-closed
-reason is 'expired-token' or 'unauthorized', the session expired: offer to start over. Closing
-Transact removes its button from the app, so whenever you offer to try again and the user agrees,
-call get_action_config for a new button. After a 'connect-account', follow the get_action_config
-guidance to find the cancellations now available.
+when they close Transact before starting a task or while one is running. Both also carry launchId,
+which identifies the button the user tapped. Either way, call check_events with that launchId and
+tell the user where the cancellation stands, as described under "Where a cancellation stands". Two
+exceptions: after transact-finished, if check_events has no task for that launchId, Atomic hasn't
+reported on it yet, so tell the user you're still waiting for the cancellation to start and will let
+them know once it does; and if a transact-closed reason is 'expired-token' or 'unauthorized', the
+session expired: offer to start over. Closing Transact removes its button from the app, so whenever
+you offer to try again and the user agrees, call get_action_config for a new button. After a
+'connect-account', follow the get_action_config guidance to find the cancellations now available.
 
 ### Atomic webhooks: task-status-updated
 
-A task finished. The event has action (what the task did), companyId (pass it to
+A task finished. The event has launchId (the button that started the task; a cancellation and the
+refresh after it have the same one), action (what the task did), companyId (pass it to
 get_user_subscriptions to read that company's account), companyName, status ('completed' or
 'failed'), and reason (when it failed). For a cancellation or the refresh after it, tell the user
 where the cancellation stands, as described under "Where a cancellation stands", without calling
@@ -142,13 +143,15 @@ task-status-updated webhook when the task starts (status 'processing') and again
 ('completed' or 'failed', with a reason when it fails). Right after the cancellation finishes,
 Atomic runs a refresh task to resync the user's account data, which sends the same two webhooks.
 Once the refresh completes, the user's new data is ready to read with get_user_subscriptions.
-check_events shows the latest status of each task, including refreshes (action 'refresh').
+check_events shows the latest status of each task, including refreshes (action 'refresh'). A
+cancellation and the refresh after it have the same launchId, so match them by it.
 
 ## Where a cancellation stands, and what to tell the user
 
 Use your own words, keep it to a sentence or two, and don't repeat an outcome you already told them:
-- No cancellation task: the user left Transact without starting one. Say it looks like they didn't
-  go ahead with the cancellation, and ask whether there's anything else you can help with.
+- No cancellation task for the launchId: the user left Transact without starting one. Say it looks
+  like they didn't go ahead with the cancellation, and ask whether there's anything else you can
+  help with.
 - The cancellation is 'processing': say it's still in progress and that you'll let them know when it
   finishes. Closing Transact doesn't stop it. Don't offer to retry, since that could start a
   duplicate.
