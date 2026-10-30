@@ -26,8 +26,10 @@ function handleTaskStatusUpdated(event) {
   const userIdentifier = event.user?.identifier;
   const status = event.data?.status;
   const reason = event.data?.reason ?? null;
+  // Nothing to store without these; the event is still acknowledged.
+  if (!taskId || !userIdentifier || !status) return;
 
-  const action = event.data.flow ?? null;
+  const action = event.data?.flow ?? null;
   const companyId = event.company?._id ?? null;
   const companyName = event.company?.name ?? null;
   const changed = saveTaskStatusUpdatedEvent({
