@@ -29,11 +29,14 @@ export function getCurrentUser() {
 }
 
 // The latest status of each Atomic task, from task-status-updated webhooks.
-// action is the webhook's data.flow, such as 'cancel-plan' or 'connect-account'.
+// launch_id is the Transact launch that started the task, from the webhook's
+// metadata. action is the webhook's data.flow, such as 'cancel-plan' or
+// 'connect-account'.
 db.exec(`
   CREATE TABLE IF NOT EXISTS task_status_update_events (
     task_id TEXT PRIMARY KEY,
     user_identifier TEXT NOT NULL,
+    launch_id TEXT,
     action TEXT,
     company_id TEXT,
     company_name TEXT,
@@ -43,9 +46,9 @@ db.exec(`
   )
 `)
 
-// company_id and reason were added later; databases created before then don't have them.
+// These columns were added later; databases created before then don't have them.
 const taskColumns = db.prepare('PRAGMA table_info(task_status_update_events)').all()
-for (const column of ['company_id', 'reason']) {
+for (const column of ['company_id', 'reason', 'launch_id']) {
   if (!taskColumns.some((c) => c.name === column)) {
     db.exec(`ALTER TABLE task_status_update_events ADD COLUMN ${column} TEXT`)
   }
@@ -57,6 +60,7 @@ for (const column of ['company_id', 'reason']) {
 export function saveTaskStatusUpdatedEvent({
   taskId,
   userIdentifier,
+  launchId,
   action,
   companyId,
   companyName,
@@ -65,9 +69,10 @@ export function saveTaskStatusUpdatedEvent({
 }) {
   const { changes } = db.prepare(`
     INSERT INTO task_status_update_events
-      (task_id, user_identifier, action, company_id, company_name, status, reason)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+      (task_id, user_identifier, launch_id, action, company_id, company_name, status, reason)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT (task_id) DO UPDATE SET
+      launch_id = COALESCE(excluded.launch_id, launch_id),
       action = COALESCE(excluded.action, action),
       company_id = COALESCE(excluded.company_id, company_id),
       company_name = COALESCE(excluded.company_name, company_name),
@@ -78,6 +83,7 @@ export function saveTaskStatusUpdatedEvent({
   `).run(
     taskId,
     userIdentifier,
+    launchId ?? null,
     action ?? null,
     companyId ?? null,
     companyName ?? null,
@@ -87,13 +93,14 @@ export function saveTaskStatusUpdatedEvent({
   return changes > 0
 }
 
-// The user's most recently updated tasks, newest first.
-export function getTaskStatusUpdatedEvents(userIdentifier, limit = 10) {
+// The user's most recently updated tasks, newest first. With launchId, only
+// the tasks that Transact launch started.
+export function getTaskStatusUpdatedEvents(userIdentifier, { launchId, limit = 10 } = {}) {
   return db.prepare(`
-    SELECT task_id, action, company_id, company_name, status, reason, updated_at
+    SELECT task_id, launch_id, action, company_id, company_name, status, reason, updated_at
     FROM task_status_update_events
-    WHERE user_identifier = ?
+    WHERE user_identifier = ? AND (? IS NULL OR launch_id = ?)
     ORDER BY updated_at DESC
     LIMIT ?
-  `).all(userIdentifier, limit)
+  `).all(userIdentifier, launchId ?? null, launchId ?? null, limit)
 }

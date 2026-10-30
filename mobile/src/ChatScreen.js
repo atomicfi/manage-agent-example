@@ -248,13 +248,15 @@ function TransactBar({ action, styles, onDone }) {
   // The company's logo from the backend, shown on the button when there is one.
   const logo = action.logo?.url ? action.logo : null
   // Transact can report both finish and close; signal the agent once per open,
-  // with whichever came first.
+  // with whichever came first. launchId is this button's id, which the backend
+  // also put in Transact's metadata, so the agent can find the tasks this
+  // launch started.
   const signalled = useRef(false)
 
   function done(event, data) {
     if (signalled.current) return
     signalled.current = true
-    onDone?.(event, data)
+    onDone?.(event, { launchId: action.id, ...data })
   }
 
   function open() {

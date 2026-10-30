@@ -27,7 +27,8 @@ read their bills there and offer cancellations for them.
   in.
 - Never ask for the user's password. Atomic collects sign-in details itself.
 - After calling, tell the user to tap the button to continue. When they leave the Atomic screen, you
-  get a transact-finished or transact-closed event.
+  get a transact-finished or transact-closed event with a launchId for this button. The webhooks for
+  the tasks it starts carry the same launchId.
 - The app shows only the newest button, so a new one replaces any earlier button; never tell the
   user to tap an earlier one.
 - If check_events shows a connect-account task completed, call get_actions_for_company again for
@@ -73,17 +74,24 @@ read their bills there and offer cancellations for them.
   // ctx ({ userIdentifier, conversationId }) comes from the server, never the model.
   async handler({ actionId, type, logo, companyName }, ctx, { newId, sdkEnvironment }) {
     const { data } = await atomic.createAccessToken(ctx.userIdentifier)
+    // One id per button. Atomic returns Transact's metadata in the webhooks for
+    // every task this launch starts, including the refresh after a cancellation,
+    // and the app sends the id back with onFinish and onClose, so results match
+    // the launch they came from.
+    const launchId = newId()
     return {
       output: { state: 'ready' },
       clientAction: {
         type: 'launch_transact',
-        id: newId(),
+        id: launchId,
         ...BUTTONS[type](companyName),
         logo,
         config: {
           scope: 'pay-link',
           publicToken: data.publicToken,
-          tasks: [{ operation: 'action', action: { id: actionId } }]
+          tasks: [{ operation: 'action', action: { id: actionId } }],
+          // https://docs.atomicfi.com/paylink/reference/transact-sdk#metadata
+          metadata: { launchId }
         },
         environment: sdkEnvironment
       }

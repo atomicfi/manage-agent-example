@@ -26,13 +26,19 @@ function handleTaskStatusUpdated(event) {
   const userIdentifier = event.user?.identifier;
   const status = event.data?.status;
   const reason = event.data?.reason ?? null;
+  // Nothing to store without these; the event is still acknowledged.
+  if (!taskId || !userIdentifier || !status) return;
 
-  const action = event.data.flow ?? null;
+  const action = event.data?.flow ?? null;
+  // get_action_config sets this in Transact's metadata; a cancellation and the
+  // refresh after it carry the same one.
+  const launchId = event.metadata?.launchId ?? null;
   const companyId = event.company?._id ?? null;
   const companyName = event.company?.name ?? null;
   const changed = saveTaskStatusUpdatedEvent({
     taskId,
     userIdentifier,
+    launchId,
     action,
     companyId,
     companyName,
@@ -40,7 +46,7 @@ function handleTaskStatusUpdated(event) {
     reason,
   });
   console.log(
-    `[webhook] task=${taskId} user=${userIdentifier} action=${action} company=${companyName} status=${status} reason=${reason} changed=${changed}`,
+    `[webhook] task=${taskId} user=${userIdentifier} launch=${launchId} action=${action} company=${companyName} status=${status} reason=${reason} changed=${changed}`,
   );
 
   const finished = status === "completed" || status === "failed";
@@ -48,6 +54,7 @@ function handleTaskStatusUpdated(event) {
     // Only these fields go to the agent: the raw webhook also carries the
     // user's public token, which the model shouldn't see.
     enqueueSystemEvent(userIdentifier, "task-status-updated", {
+      launchId,
       action,
       companyId,
       companyName,
