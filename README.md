@@ -28,7 +28,7 @@ Everything the agent responds to goes through one queue. Three things write to i
 - **Transact SDK events**: when the user leaves the Atomic screen, the app sends the SDK's `onFinish` or `onClose` payload to `POST /transact-events`. The server queues it as a system event, so the agent can check on the task and follow up.
 - **Atomic webhooks** arrive at `POST /webhooks/atomic/manage-agent`. `task-status-updated` events are saved to SQLite, and when a task finishes, the server also queues it. A cancellation is followed by a refresh task that resyncs the user's data; once the refresh completes, the agent reads the account to confirm the cancellation.
 - **The agent** sees system events as `<system_event type="…">` messages the user never sees. Its system prompt says how to respond to each type.
-- **Replies** go to the app over the WebSocket, along with `busy` (for the typing indicator) and `error` events. Each user has one thread, keyed by their user ID.
+- **Replies** go to the app over the WebSocket, along with `busy` (for the loading state) and `error` events. Each user has one thread, keyed by their user ID.
 
 When the agent wants the app to open Transact, a tool returns a `launch_transact` *client action* alongside its result. It travels with the agent's reply, and the app shows it as a button. The model only learns that the button is ready; it never sees the launch configuration.
 
